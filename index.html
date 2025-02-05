@@ -795,54 +795,108 @@
             const selectedModel = document.getElementById('model-select').value;
             const activeTab = document.querySelector('.tab.active input.tab-title');
             const currentTitle = activeTab.value;
-            console.log('Current page:', currentPage);  // Debug log
-            console.log('Chat histories:', chatHistories);  // Debug log
-                    
+            
             if (codingTask || selectedFiles.length > 0) {
                 appendMessage('User', codingTask);
                 codingTaskInput.value = '';
-        
-                chatHistories[currentPage].push({ sender: 'User', text: codingTask, isCode: false });
                 whiteEyeLogo.classList.add('eye-fade');
         
-                // Create the message payload with the other data
+                // Create message container for streaming response
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'ai');
+                chatBox.appendChild(messageElement);
+                chatBox.appendChild(whiteEyeLogo);
+        
                 const messagePayload = {
                     ip_address: userIp,
                     message: codingTask,
                     page: currentPage,
                     model: selectedModel,
                     tab_name: currentTitle,
-                    file_names: selectedFiles.map(file => file.name) // Optional: list of file names for reference
+                    file_names: selectedFiles.map(file => file.name)
                 };
         
-                // Create a FormData object to handle the JSON payload and file attachments
                 const formData = new FormData();
-                formData.append('payload', JSON.stringify(messagePayload)); // Attach the JSON stringified payload
-        
-                // Append the selected files directly as a list (files[])
+                formData.append('payload', JSON.stringify(messagePayload));
                 selectedFiles.forEach((file) => {
-                    formData.append('files[]', file); // Use 'files[]' to represent the list of files
+                    formData.append('files[]', file);
                 });
         
-                // Send the FormData object with both JSON and files
                 fetch('https://b5e4-34-126-114-255.ngrok-free.app/chat', {
                     method: 'POST',
-                    body: formData,  // Send the form data with the JSON payload and file attachments
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Success:', data);
-                    appendMessage('AI', data.response, true);
-                    chatHistories[currentPage].push({ sender: 'AI', text: data.response, isCode: true });
-
-                    // Clear attachments after message is sent
-                    attachmentsPreview.innerHTML = '';
-                    selectedFiles = [];
-                })
-                .catch(error => {
+                    body: formData,
+                }).then(response => {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    let completeResponse = '';
+        
+                    function processText({ done, value }) {
+                        if (done) {
+                            // Store complete message in chat history
+                            chatHistories[currentPage].push({ 
+                                sender: 'AI', 
+                                text: completeResponse, 
+                                isCode: true 
+                            });
+                            
+                            // Apply markdown and syntax highlighting
+                            if (selectedModel !== 'chat') {
+                                messageElement.innerHTML = marked.parse(completeResponse);
+                                messageElement.querySelectorAll('pre code').forEach((block) => {
+                                    hljs.highlightElement(block);
+                                });
+                            }
+        
+                            whiteEyeLogo.classList.remove('eye-fade');
+                            
+                            // Add feedback button if not already shown
+                            if (!feedbackButtonShown[currentPage]) {
+                                const feedbackButton = createFeedbackButton();
+                                chatBox.appendChild(feedbackButton);
+                                feedbackButtonShown[currentPage] = true;
+                            }
+                            return;
+                        }
+        
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop();
+        
+                        lines.forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.slice(5));
+                                    completeResponse += data.response;
+                                    
+                                    // Update the message element with the new content
+                                    if (selectedModel !== 'chat') {
+                                        // For markdown/code responses, accumulate the text
+                                        messageElement.textContent = completeResponse;
+                                    } else {
+                                        // For plain text, just append
+                                        messageElement.textContent = completeResponse;
+                                    }
+                                } catch (e) {
+                                    console.error('Error parsing SSE data:', e);
+                                }
+                            }
+                        });
+        
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                        return reader.read().then(processText);
+                    }
+        
+                    return reader.read().then(processText);
+                }).catch(error => {
                     console.error('Error:', error);
-                    appendMessage('AI', 'This demo is being run on local gpu resources, my computer may have shut down. Please message me to reboot to restore demo capabilities. This service will be back online soon.');
+                    messageElement.textContent = 'An error occurred while processing your request.';
+                    whiteEyeLogo.classList.remove('eye-fade');
                 });
+        
+                // Clear attachments
+                attachmentsPreview.innerHTML = '';
+                selectedFiles = [];
             }
         }
         

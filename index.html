@@ -37,7 +37,7 @@
             justify-content: flex-start; /* This will place the logo on the left and tab on the right */
             align-items: flex-end;
             width: 100%;
-            background-color: #2D2D2D;
+            background-color: #f0f0f0;
             padding: 0; /* Add padding for spacing */
             margin: 0;
             box-sizing: border-box;
@@ -67,7 +67,7 @@
         /* Tabs */
         /* Tabs on the right side */
         .tab {
-            background-color: #D3D3D3;
+            background-color: #e0e0e0;
             border-radius: 15px 15px 0 0;
             color: white;
             display: flex;
@@ -89,7 +89,7 @@
             outline: none;
             text-align: center;
             font-size: 16px;
-            color: white;
+            color: 000000;
             width: 100px;
             display: block; /* Ensure input is block-level */
         }
@@ -99,8 +99,8 @@
         }
 
         .tab.active {
-            background-color: #000000;
-            color: white;
+            background-color: #ffffff;
+            color: #000000;
             z-index: 1;
         }
         /* Hide inactive tabs */
@@ -112,8 +112,8 @@
             display: none;
             width: 100%;
             height: calc(100vh - 112px);
-            background-color: #000000;
-            color: white;
+            background-color: #ffffff;
+            color: #000000;
         }
         
         .tab-content.active {
@@ -123,6 +123,8 @@
         .static-content {
             padding: 20px;
             height: 100%;
+            background-color: #ffffff;
+            color: #000000
             overflow-y: auto;
         }
         
@@ -167,9 +169,9 @@
         #model-select {
             padding: 10px;
             font-size: 16px;
-            color: white;
-            background-color: black;
-            border: 2px solid white;
+            color: #000000;
+            background-color: #ffffff;
+            border: 2px solid #000000;
             border-radius: 5px;
             outline: none;
             appearance: none;
@@ -184,7 +186,7 @@
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: white;
+            color: #000000;
             pointer-events: none;
         }
 
@@ -193,7 +195,7 @@
             color: white;
         }
 
-        #model-select option:checked {
+        #model-sfelect option:checked {
             background-color: #007bff;
             color: white;
         }
@@ -214,8 +216,8 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            color: white;
-            background-color: #000000;
+            color: 000000;
+            background-color: #ffffff;
             padding: 60px 20px 20px 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
@@ -233,18 +235,18 @@
 
         .message.user {
             align-self: flex-end;
-            background-color: white;
+            background-color: #f0f0f0;
             padding: 10px;
             border-radius: 15px;
             margin-bottom: 10px;
-            color: black;
+            color: #000000;
         }
 
         .message.ai {
             align-self: stretch;
             width: 100%;
             background-color: transparent;
-            color: #ffffff;
+            color: #000000;
             padding: 0;
             margin: 0;
             border: none;
@@ -390,7 +392,7 @@
         .hamburger-menu .line {
             width: 30px;
             height: 3px;
-            background-color: white; /* White hamburger button */
+            background-color: #000000; /* White hamburger button */
         }
 
         /* Sidebar styles */

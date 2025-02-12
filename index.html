@@ -929,49 +929,24 @@
 
 
 
-        sidebarAddPageButton.addEventListener('click', () => {
-            pageCount++;
-            const newTab = document.createElement('div');
-            newTab.classList.add('tab');
-            const newPageName = `New Page ${pageCount}`;
-            newTab.setAttribute('data-page-name', newPageName); // Assign original page name
-            newTab.innerHTML = `<input type="text" value="${newPageName}" class="tab-title" />`;
-        
-            // Remove current active tab, if any
-            const currentActiveTab = document.querySelector('.tab.active');
-            if (currentActiveTab) {
-                currentActiveTab.classList.remove('active');
-            }
-        
-            // Set new tab as active
-            newTab.classList.add('active');
-            document.getElementById('tab-container').appendChild(newTab);  // Append to the container
-            setActiveTab(newTab, newPageName);
-        
-            // Add the new page to chatHistories
-            chatHistories[newPageName] = [];
 
-            // Add corresponding sidebar tab
-            const sidebarTab = document.createElement('div');
-            sidebarTab.classList.add('sidebar-tab');
-            sidebarTab.textContent = newPageName;
-        
-            // Switch to new tab on click in sidebar
-            sidebarTab.addEventListener('click', () => {
-                setActiveTab(newTab, newPageName);
-                sidebar.classList.remove('open');
-                sidebarVisible = false;
-            });
-        
-            sidebarContent.appendChild(sidebarTab);
-        
-            // Add tab title editing functionality
-            const tabTitleInput = newTab.querySelector('.tab-title');
-            addTabEditEventListener(tabTitleInput, sidebarTab, newPageName);
-        });
         
         function setActiveTab(tab, pageName) {
-            // Hide only chat tabs, not static tabs
+            // First, handle display of different content types
+            const chatBox = document.getElementById('chat-box');
+            const inputContainer = document.getElementById('input-container');
+            const modelSelectContainer = document.getElementById('model-select-container');
+            const promptContent = document.getElementById('prompt-content');
+            const syntheticContent = document.getElementById('synthetic-content');
+        
+            // Reset all content displays
+            chatBox.style.display = 'none';
+            inputContainer.style.display = 'none';
+            modelSelectContainer.style.display = 'none';
+            promptContent.style.display = 'none';
+            syntheticContent.style.display = 'none';
+        
+            // Hide all tabs except static tabs
             const allTabs = document.querySelectorAll('.tab:not(.static-tab)');
             allTabs.forEach((otherTab) => {
                 if (otherTab !== tab) {
@@ -979,27 +954,92 @@
                 }
             });
         
-            // Rest of your existing setActiveTab function...
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        
+            // Show the selected tab
             tab.classList.remove('hidden');
-            
-            const activeTab = document.querySelector('.tab.active');
-            if (activeTab) {
-                activeTab.classList.remove('active');
-                activeTab.style.width = `${maxTabWidth}px`;
-                activeTab.classList.remove('shrunk');
-            }
-            
             tab.classList.add('active');
-            currentPage = pageName;
-            document.getElementById('prompt-content').style.display = 'none';
-            document.getElementById('synthetic-content').style.display = 'none';
-            loadChatHistory(pageName);
-            reapplySyntaxHighlighting();
+        
+            // Determine what type of content to show based on the tab
+            if (tab.id === 'prompt-tab') {
+                promptContent.style.display = 'block';
+            } else if (tab.id === 'synthetic-tab') {
+                syntheticContent.style.display = 'block';
+            } else {
+                // It's a chat tab
+                chatBox.style.display = 'flex';
+                inputContainer.style.display = 'flex';
+                modelSelectContainer.style.display = 'block';
+                
+                // Update current page and load its chat history
+                currentPage = pageName;
+                if (!chatHistories[currentPage]) {
+                    chatHistories[currentPage] = [];
+                }
+                loadChatHistory(currentPage);
+            }
         }
 
+        // Update the sidebar tab click handler
+        function setupSidebarTabHandlers() {
+            const sidebarTabs = document.querySelectorAll('.sidebar-tab');
+            sidebarTabs.forEach(sidebarTab => {
+                sidebarTab.addEventListener('click', () => {
+                    const tabName = sidebarTab.textContent;
+                    // Find the corresponding main tab
+                    const mainTab = Array.from(document.querySelectorAll('.tab')).find(tab => {
+                        const tabInput = tab.querySelector('input.tab-title');
+                        return tabInput && tabInput.value === tabName;
+                    });
+        
+                    if (mainTab) {
+                        setActiveTab(mainTab, tabName);
+                        sidebar.classList.remove('open');
+                        sidebarVisible = false;
+                    }
+                });
+            });
+        }
+        
+        // Call this function after creating new tabs or updating the sidebar
+        setupSidebarTabHandlers();
 
-
-
+        sidebarAddPageButton.addEventListener('click', () => {
+            pageCount++;
+            const newPageName = `New Page ${pageCount}`;
+            
+            // Create new tab
+            const newTab = document.createElement('div');
+            newTab.classList.add('tab');
+            newTab.setAttribute('data-page-name', newPageName);
+            newTab.innerHTML = `<input type="text" value="${newPageName}" class="tab-title" />`;
+        
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        
+            // Add new tab to container
+            document.getElementById('tab-container').appendChild(newTab);
+            
+            // Initialize chat history for new page
+            chatHistories[newPageName] = [];
+        
+            // Create sidebar tab
+            const sidebarTab = document.createElement('div');
+            sidebarTab.classList.add('sidebar-tab');
+            sidebarTab.textContent = newPageName;
+            sidebarContent.appendChild(sidebarTab);
+        
+            // Set up event handlers for the new tab
+            const tabTitleInput = newTab.querySelector('.tab-title');
+            addTabEditEventListener(tabTitleInput, sidebarTab, newPageName);
+        
+            // Activate the new tab
+            setActiveTab(newTab, newPageName);
+        
+            // Refresh sidebar handlers
+            setupSidebarTabHandlers();
+        });
         function createSidebarTab(pageName) {
             const sidebarTab = document.createElement('div');
             sidebarTab.classList.add('sidebar-tab');

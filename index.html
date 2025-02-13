@@ -802,7 +802,8 @@
                 appendMessage('User', codingTask);
                 codingTaskInput.value = '';
                 whiteEyeLogo.classList.add('eye-fade');
-        
+                chatHistories[currentPage].push({ sender: 'User', text: codingTask, isCode: false });
+
                 // Create message container for streaming response
                 const messageElement = document.createElement('div');
                 messageElement.classList.add('message', 'ai');

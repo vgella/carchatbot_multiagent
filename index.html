@@ -3,167 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ditra demo (thirdeye)</title>
-    <link rel="icon" href="flavicon_thirdeye.png" type="image/png">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/monokai-sublime.min.css">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
+    <title>Model Playground</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: #ffffff;
-            color: #000000;
-            min-height: 100vh;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            overflow-y: scroll;
+            height: 100vh;
         }
 
-        /* Tabs and Sidebar */
-        #tab-container { display: flex; justify-content: flex-start; align-items: flex-end; width: 100%; background-color: #f0f0f0; }
-        .tab { background-color: #e0e0e0; border-radius: 15px 15px 0 0; padding: 7.5px 15px; width: 150px; text-align: center; cursor: pointer; }
-        .tab.active { background-color: #ffffff; }
-        .hidden { display: none; }
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
 
-        /* Chatbox */
-        #chat-container { width: 100%; display: flex; flex-direction: column; align-items: center; height: calc(100vh - 112px); }
-        #chat-box { flex-grow: 1; width: 100%; padding: 20px; overflow-y: auto; }
-        .message { padding: 10px; border-radius: 10px; margin-bottom: 5px; }
-        .user { background-color: #f0f0f0; text-align: right; }
-        .ai { background-color: #dfe7fd; }
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* Inputs */
-        #input-container { width: 100%; display: flex; padding: 10px; background-color: #fff; }
-        .main-input-field { flex-grow: 1; padding: 15px; border: none; border-radius: 10px; }
-        .send-button { padding: 10px 20px; background-color: black; color: white; border: none; cursor: pointer; }
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* Prompt and Data Tabs */
-        .static-content { padding: 20px; }
-        .prompt-text, .synthetic-data { width: 100%; min-height: 200px; padding: 10px; border: 1px solid #ddd; }
+        .chat-container {
+            flex: 1;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        .user-message {
+            background-color: #e3f2fd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .assistant-message {
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .tab-navigation {
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            margin-right: 5px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .tab-button.active {
+            border-bottom: 2px solid #007bff;
+            color: #007bff;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .prompt-container {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .prompt-textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+
+        select {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <div class="left-panel">
+            <select id="modelSelect">
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                <option value="gpt-4">GPT-4</option>
+                <option value="claude-2">Claude 2</option>
+                <option value="palm-2">PaLM 2</option>
+            </select>
+            <div class="chat-container" id="chatContainer">
+                <!-- Chat messages will be displayed here -->
+            </div>
+            <div class="input-container">
+                <textarea id="userInput" placeholder="Type your message here..."></textarea>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="tab-navigation">
+                <button class="tab-button" onclick="openTab('chatAgentPrompt')">Chat Agent Prompt</button>
+                <button class="tab-button" onclick="openTab('uiAgentPrompt')">UI Agent Prompt</button>
+                <button class="tab-button" onclick="openTab('userProfileAgentPrompt')">User Profile Agent Prompt</button>
+                <button class="tab-button" onclick="openTab('hardConstraintsAgentPrompt')">Hard Constraints Agent Prompt</button>
+                <button class="tab-button" onclick="openTab('softConstraintsAgentPrompt')">Soft Constraints Agent Prompt</button>
+            </div>
 
-    <!-- Tabs for Chat, Prompt, and Client Data -->
-    <div id="tab-container">
-        <div class="tab active" id="chat-tab">Chat</div>
-        <div class="tab" id="prompt-tab">Agent Prompts</div>
-        <div class="tab" id="synthetic-tab">Client Data</div>
-    </div>
+            <div id="chatAgentPrompt" class="tab-content">
+                <div class="prompt-container">
+                    <textarea id="chatAgentPromptText" class="prompt-textarea"></textarea>
+                    <button onclick="updatePrompt('chatAgentPrompt')">Update</button>
+                </div>
+            </div>
 
-    <!-- Chatbox -->
-    <div id="chat-container">
-        <div id="chat-box"></div>
-        <div id="input-container">
-            <input type="text" id="chat-input" class="main-input-field" placeholder="Type your message..." />
-            <button id="send-button" class="send-button">Send</button>
+            <div id="uiAgentPrompt" class="tab-content">
+                <div class="prompt-container">
+                    <textarea id="uiAgentPromptText" class="prompt-textarea"></textarea>
+                    <button onclick="updatePrompt('uiAgentPrompt')">Update</button>
+                </div>
+            </div>
+
+            <div id="userProfileAgentPrompt" class="tab-content">
+                <div class="prompt-container">
+                    <textarea id="userProfileAgentPromptText" class="prompt-textarea"></textarea>
+                    <button onclick="updatePrompt('userProfileAgentPrompt')">Update</button>
+                </div>
+            </div>
+
+            <div id="hardConstraintsAgentPrompt" class="tab-content">
+                <div class="prompt-container">
+                    <textarea id="hardConstraintsAgentPromptText" class="prompt-textarea"></textarea>
+                    <button onclick="updatePrompt('hardConstraintsAgentPrompt')">Update</button>
+                </div>
+            </div>
+
+            <div id="softConstraintsAgentPrompt" class="tab-content">
+                <div class="prompt-container">
+                    <textarea id="softConstraintsAgentPromptText" class="prompt-textarea"></textarea>
+                    <button onclick="updatePrompt('softConstraintsAgentPrompt')">Update</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Prompt Management -->
-    <div id="prompt-content" class="static-content hidden">
-        <h2>Agent Prompts</h2>
-        <textarea id="prompt-editable" class="prompt-text" spellcheck="false"></textarea>
-        <button id="save-prompts">Save Prompts</button>
-    </div>
-
-    <!-- Synthetic Client Data -->
-    <div id="synthetic-content" class="static-content hidden">
-        <h2>Client Data</h2>
-        <textarea id="synthetic-editable" class="synthetic-data" spellcheck="false"></textarea>
-        <button id="save-synthetic">Save Data</button>
-    </div>
-
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            setupTabs();
-            fetchInitialValues();
-        });
+        // Initialize prompts from localStorage or set defaults
+        const defaultPrompts = {
+            chatAgentPrompt: "You are a helpful chat assistant...",
+            uiAgentPrompt: "You are a UI design assistant...",
+            userProfileAgentPrompt: "You are a user profiling assistant...",
+            hardConstraintsAgentPrompt: "You are a hard constraints assistant...",
+            softConstraintsAgentPrompt: "You are a soft constraints assistant..."
+        };
 
-        function setupTabs() {
-            document.getElementById("chat-tab").addEventListener("click", () => switchTab("chat"));
-            document.getElementById("prompt-tab").addEventListener("click", () => switchTab("prompt"));
-            document.getElementById("synthetic-tab").addEventListener("click", () => switchTab("synthetic"));
-        }
-
-        function switchTab(tab) {
-            document.getElementById("chat-container").classList.toggle("hidden", tab !== "chat");
-            document.getElementById("prompt-content").classList.toggle("hidden", tab !== "prompt");
-            document.getElementById("synthetic-content").classList.toggle("hidden", tab !== "synthetic");
-        }
-
-        function fetchInitialValues() {
-            fetch('https://your-ngrok-url/init_vals', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("prompt-editable").value = data.premise;
-                    document.getElementById("synthetic-editable").value = data.data;
-                });
-        }
-
-        function updateValues(endpoint, payload) {
-            fetch(`https://your-ngrok-url/${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(response => response.json()).then(console.log);
-        }
-
-        document.getElementById("save-prompts").addEventListener("click", () => {
-            updateValues("update_vals", { premise: document.getElementById("prompt-editable").value });
-        });
-
-        document.getElementById("save-synthetic").addEventListener("click", () => {
-            updateValues("update_vals", { data: document.getElementById("synthetic-editable").value });
-        });
-
-        document.getElementById("send-button").addEventListener("click", () => sendChatMessage());
-
-        function sendChatMessage() {
-            const userMessage = document.getElementById("chat-input").value;
-            if (!userMessage) return;
-            appendMessage("User", userMessage, "black");
-            document.getElementById("chat-input").value = "";
-
-            fetchSequentially([
-                { endpoint: "chat", color: "blue" },
-                { endpoint: "user_profile", color: "green" },
-                { endpoint: "hard_constraints", color: "red" },
-                { endpoint: "soft_constraints", color: "purple" },
-                { endpoint: "ai_response", color: "black" }
-            ], userMessage);
-        }
-
-        function fetchSequentially(steps, message) {
-            if (!steps.length) return;
-
-            const { endpoint, color } = steps.shift();
-            fetch(`https://your-ngrok-url/${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                appendMessage(endpoint.replace("_", " "), data.response, color);
-                fetchSequentially(steps, message);
+        // Load prompts from localStorage or use defaults
+        function initializePrompts() {
+            Object.keys(defaultPrompts).forEach(promptType => {
+                const savedPrompt = localStorage.getItem(promptType);
+                document.getElementById(`${promptType}Text`).value = savedPrompt || defaultPrompts[promptType];
             });
         }
 
-        function appendMessage(sender, text, color) {
-            const chatBox = document.getElementById("chat-box");
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("message");
-            messageElement.style.color = color;
-            messageElement.innerHTML = `<strong>${sender}:</strong> ${text}`;
-            chatBox.appendChild(messageElement);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        function openTab(tabName) {
+            // Hide all tab content
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let content of tabContents) {
+                content.classList.remove('active');
+            }
+            
+            // Remove active class from all buttons
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let button of tabButtons) {
+                button.classList.remove('active');
+            }
+            
+            // Show selected tab content and activate button
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
-    </script>
 
+        function updatePrompt(agentType) {
+            const promptText = document.getElementById(`${agentType}Text`).value;
+            localStorage.setItem(agentType, promptText);
+            alert(`${agentType} updated successfully!`);
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const chatContainer = document.getElementById('chatContainer');
+            const message = userInput.value.trim();
+
+            if (message) {
+                // Add user message
+                const userMessageDiv = document.createElement('div');
+                userMessageDiv.className = 'message user-message';
+                userMessageDiv.textContent = message;
+                chatContainer.appendChild(userMessageDiv);
+
+                // Add assistant message (placeholder)
+                const assistantMessageDiv = document.createElement('div');
+                assistantMessageDiv.className = 'message assistant-message';
+                assistantMessageDiv.textContent = "This is a placeholder response. In a real implementation, this would be the AI model's response.";
+                chatContainer.appendChild(assistantMessageDiv);
+
+                // Clear input
+                userInput.value = '';
+
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        // Initialize the first tab as active when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.tab-button').click();
+            initializePrompts();
+        });
+
+        // Handle Enter key in textarea
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -3,276 +3,1064 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Model Playground</title>
+    <title>ditra demo (thirdeye)</title>
+    <link rel="icon" href="flavicon_thirdeye.png" type="image/png">
+    
+    <!-- Load Monokai Sublime theme for syntax highlighting -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/monokai-sublime.min.css">
+    
+    <!-- Load highlight.js library -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+
+    <!-- Load marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            justify-content: flex-start;
+            align-items: center;
+            overflow-y: scroll;
         }
 
-        .container {
+        #tab-container {
             display: flex;
-            flex: 1;
-            gap: 20px;
+            justify-content: flex-start;
+            align-items: flex-end;
+            width: 100%;
+            background-color: #f0f0f0;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            height: auto;
+            overflow-x: hidden;
         }
 
-        .left-panel {
-            flex: 1;
+        #tab-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        #tab-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .tabs-wrapper {
             display: flex;
-            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-end;
+            height: 50%;
+            width: 100%;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .right-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-container {
-            flex: 1;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            overflow-y: auto;
-        }
-
-        .message {
-            margin-bottom: 10px;
-            padding: 5px;
-        }
-
-        .user-message {
-            background-color: #e3f2fd;
-            border-radius: 5px;
-            padding: 10px;
-        }
-
-        .assistant-message {
-            background-color: #f5f5f5;
-            border-radius: 5px;
-            padding: 10px;
-        }
-
-        .input-container {
-            display: flex;
-            gap: 10px;
-        }
-
-        textarea {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            resize: none;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
+        .tab {
+            background-color: #e0e0e0;
+            border-radius: 15px 15px 0 0;
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .tab-navigation {
-            border-bottom: 1px solid #ccc;
-            padding: 10px;
-        }
-
-        .tab-button {
-            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7.5px 15px;
+            width: 150px;
             margin-right: 5px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            color: #333;
+            margin-bottom: 0;
+        }
+        
+        #tab-container .tab.active {
+            margin-left: 0;
         }
 
-        .tab-button.active {
-            border-bottom: 2px solid #007bff;
-            color: #007bff;
+        .tab input {
+            border: none;
+            background-color: transparent;
+            outline: none;
+            text-align: center;
+            font-size: 16px;
+            color: 000000;
+            width: 100px;
+            display: block;
+        }
+
+        .tab.shrunk input {
+            display: none;
+        }
+
+        .tab.active {
+            background-color: #ffffff;
+            color: #000000;
+            z-index: 1;
+        }
+
+        .tab.hidden {
+            display: none;
         }
 
         .tab-content {
             display: none;
-            padding: 20px;
+            width: 100%;
+            height: calc(100vh - 112px);
+            background-color: #ffffff;
+            color: #000000;
         }
-
+        
         .tab-content.active {
             display: block;
         }
-
-        .prompt-container {
-            width: 100%;
-            margin-top: 20px;
+        
+        .static-content {
+            padding: 20px;
+            height: 100%;
+            background-color: #ffffff;
+            color: #000000;
+            overflow-y: auto;
+        }
+        
+        .static-tab .tab-title {
+            font-size: 16px;
+            text-align: center;
+            color: inherit;
         }
 
-        .prompt-textarea {
+        .static-tab {
+            display: flex;
+            visibility: visible;
+        }
+
+        #chat-container {
             width: 100%;
-            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: calc(100vh - 112px);
+            box-sizing: border-box;
+            overflow-y: auto;
+            flex-grow: 1;
+            position: relative;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        #chat-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        #model-select-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            display: inline-block;
+        }
+    
+        #model-select {
+            padding: 10px;
+            font-size: 16px;
+            color: #000000;
+            background-color: #ffffff;
+            border: 2px solid #000000;
+            border-radius: 5px;
+            outline: none;
+            appearance: none;
+            cursor: pointer;
+            padding-right: 30px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        #model-select-container::after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #000000;
+            pointer-events: none;
+        }
+
+        #model-select option {
+            background-color: black;
+            color: white;
+        }
+
+        #model-select option:checked {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #model-select:hover {
+            background-color: #333;
+            border-color: black;
+        }
+
+        #model-select:focus {
+            border-color: black;
+            outline: none;
+        }
+
+        #chat-box {
+            flex-grow: 1;
+            width: calc(100% - 40px);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            color: 000000;
+            background-color: #ffffff;
+            padding: 60px 20px 20px 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message {
+            padding: 0;
+            background-color: transparent;
+            box-shadow: none;
+            margin-bottom: 0;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 15px;
             margin-bottom: 10px;
-            padding: 10px;
+            color: #000000;
         }
 
-        select {
+        .message.ai {
+            align-self: stretch;
+            width: 100%;
+            background-color: transparent;
+            color: #000000;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+
+        .message pre code {
+            background-color: #1e1e1e;
+            color: #f8f8f2;
+            width: 100%;
+            border-radius: 0;
             padding: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Fira Code', monospace;
+        }
+
+        #input-container {
+            width: calc(100% - 20px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: black;
+            padding: 10px;
+            background-color: transparent;
+            box-sizing: border-box;
+            overflow: visible;
+        }
+
+        .main-input-field {
+            flex-grow: 1;
+            padding: 15px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+            overflow:hidden;
+        }
+
+        .main-input-field:focus {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-input-field::placeholder {
+            color: #000000;
+        }
+
+        .send-button-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            background: none;
+            border: none;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid black;
+            cursor: pointer;
+            outline: none;
+            transition: transform 0.3s ease;
+        }
+
+        .triangle:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        #white-eye-logo {
+            width: 343px;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            pointer-events: none;
+        }
+
+        .eye-fade {
+            animation: fadeInOut 2s infinite;
+        }
+
+        .popup-content {
+            padding: 20px;
+            max-width: 600px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        #feedback-button {
+            position: relative;
+            margin: 15px 0;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #feedback-button:hover {
+            background-color: #0056b3;
+        }
+
+        .hamburger-menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 10px;
+            background-color: transparent;
+        }
+
+        .hamburger-menu .line {
+            width: 30px;
+            height: 3px;
+            background-color: #000000;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 0;
+            right: -343px;
+            width: 300px;
+            height: calc(100vh - 170px);
+            background-color: transparent;
+            border-radius: 15px 0 0 15px;
+            transition: right 0.3s ease;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-header {
+            margin-bottom: 20px;
+        }
+
+        .search-tabs {
+            width: calc(100% - 20px);
+            padding: 10px;
+            font-size: 16px;
+            border: none;
             margin-bottom: 10px;
             border-radius: 5px;
-            border: 1px solid #ccc;
+        }
+
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar-content .sidebar-tab {
+            background-color: #000000;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar-content .sidebar-tab:hover {
+            background-color: #f0f0f0;
+        }
+
+        .add-page-sidebar-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            color: black;
+            font-size: 30px;
+            font-weight: bold;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .add-page-sidebar-button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .attachment-button-container {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        
+        .paperclip-button {
+            cursor: pointer;
+            height: auto;
+        }
+
+        .paperclip-button img {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            object-fit: contain;
+        }
+
+        #attachments-preview {
+            display: flex;
+            flex-direction: column;
+            max-height: none;
+            overflow: visible;
+            margin-bottom: 10px;
+            width: calc(100% - 20px);
+        }
+        
+        .attachment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        
+        .attachment-item span {
+            max-width: 80%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .attachment-item .remove-attachment {
+            cursor: pointer;
+            color: red;
+        }
+
+        [contenteditable="true"] {
+            outline: none;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        [contenteditable="true"]:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        [contenteditable="true"]:focus {
+            background-color: rgba(255, 255, 255, 0.15);
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="left-panel">
-            <select id="modelSelect">
-                <option value="gpt-4">GPT-4o-mini</option>
 
-            </select>
-            <div class="chat-container" id="chatContainer">
-                <!-- Chat messages will be displayed here -->
-            </div>
-            <div class="input-container">
-                <textarea id="userInput" placeholder="Type your message here..."></textarea>
-                <button onclick="sendMessage()">Send</button>
-            </div>
+    <body>
+    <div id="tab-container">
+        <div class="tab active" id="new-page-1" data-page-name="New Page 1">
+            <input type="text" value="New Page 1" class="tab-title" />
         </div>
-        <div class="right-panel">
-            <div class="tab-navigation">
-                <button class="tab-button" onclick="openTab('chatAgentPrompt')">Chat Agent Prompt</button>
-                <button class="tab-button" onclick="openTab('uiAgentPrompt')">UI Agent Prompt</button>
-                <button class="tab-button" onclick="openTab('userProfileAgentPrompt')">User Profile Agent Prompt</button>
-                <button class="tab-button" onclick="openTab('hardConstraintsAgentPrompt')">Hard Constraints Agent Prompt</button>
-                <button class="tab-button" onclick="openTab('softConstraintsAgentPrompt')">Soft Constraints Agent Prompt</button>
-            </div>
-
-            <div id="chatAgentPrompt" class="tab-content">
-                <div class="prompt-container">
-                    <textarea id="chatAgentPromptText" class="prompt-textarea"></textarea>
-                    <button onclick="updatePrompt('chatAgentPrompt')">Update</button>
-                </div>
-            </div>
-
-            <div id="uiAgentPrompt" class="tab-content">
-                <div class="prompt-container">
-                    <textarea id="uiAgentPromptText" class="prompt-textarea"></textarea>
-                    <button onclick="updatePrompt('uiAgentPrompt')">Update</button>
-                </div>
-            </div>
-
-            <div id="userProfileAgentPrompt" class="tab-content">
-                <div class="prompt-container">
-                    <textarea id="userProfileAgentPromptText" class="prompt-textarea"></textarea>
-                    <button onclick="updatePrompt('userProfileAgentPrompt')">Update</button>
-                </div>
-            </div>
-
-            <div id="hardConstraintsAgentPrompt" class="tab-content">
-                <div class="prompt-container">
-                    <textarea id="hardConstraintsAgentPromptText" class="prompt-textarea"></textarea>
-                    <button onclick="updatePrompt('hardConstraintsAgentPrompt')">Update</button>
-                </div>
-            </div>
-
-            <div id="softConstraintsAgentPrompt" class="tab-content">
-                <div class="prompt-container">
-                    <textarea id="softConstraintsAgentPromptText" class="prompt-textarea"></textarea>
-                    <button onclick="updatePrompt('softConstraintsAgentPrompt')">Update</button>
-                </div>
-            </div>
+        <div class="tab static-tab" id="prompt-tab">
+            <span class="tab-title">Prompt</span>
+        </div>
+        <div class="tab static-tab" id="synthetic-tab">
+            <span class="tab-title">Client Data</span>
+        </div>
+        <div class="tab static-tab" id="constraint-hard-tab">
+            <span class="tab-title">Constraint Generator Prompt Hard</span>
+        </div>
+        <div class="tab static-tab" id="constraint-soft-tab">
+            <span class="tab-title">Constraint Generator Prompt Soft</span>
+        </div>
+        <div class="tab static-tab" id="past-interaction-tab">
+            <span class="tab-title">Past User Interaction Agent Prompt</span>
+        </div>
+        <div class="tab static-tab" id="user-profile-tab">
+            <span class="tab-title">User Profile Agent Prompt</span>
         </div>
     </div>
 
+    <div id="chat-container">
+        <div id="hamburger-menu" class="hamburger-menu">
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+        </div>
+
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <input type="text" id="search-tabs" class="search-tabs" placeholder="Search tabs or chats..." />
+            </div>
+            <div id="sidebar-content" class="sidebar-content">
+            </div>
+            <button id="add-page-sidebar-button" class="add-page-sidebar-button">+</button>
+        </div>
+
+        <div id="model-select-container">
+            <select id="model-select">
+                <option value=gpt4o-mini>openai's gpt4o-mini</option>
+                <option value=phi4>microsoft's phi4</option>
+                <option value=deepseekr1-7b>deepseekr1 7b</option>
+            </select>
+        </div>
+
+        <div id="chat-box">
+            <img id="white-eye-logo" src="white_eye_logo.svg" alt="White Eye Logo" />
+        </div>
+
+        <div id="prompt-content" class="tab-content">
+            <div class="static-content">
+                <h2>Prompt</h2>
+                <div id="prompt-editable" class="prompt-text" contenteditable="true" spellcheck="false">
+                    Loading prompt...
+                </div>
+            </div>
+        </div>
+        
+        <div id="synthetic-content" class="tab-content">
+            <div class="static-content">
+                <h2>Synthetic Data</h2>
+                <div id="synthetic-editable" class="synthetic-data" contenteditable="true" spellcheck="false">
+                    Loading synthetic data...
+                </div>
+            </div>
+        </div>
+
+        <div id="constraint-hard-content" class="tab-content">
+            <div class="static-content">
+                <h2>Constraint Generator Prompt Hard</h2>
+                <div id="constraint-hard-editable" class="constraint-hard-text" contenteditable="true" spellcheck="false">
+                    Loading constraint generator prompt hard...
+                </div>
+            </div>
+        </div>
+
+        <div id="constraint-soft-content" class="tab-content">
+            <div class="static-content">
+                <h2>Constraint Generator Prompt Soft</h2>
+                <div id="constraint-soft-editable" class="constraint-soft-text" contenteditable="true" spellcheck="false">
+                    Loading constraint generator prompt soft...
+                </div>
+            </div>
+        </div>
+
+        <div id="past-interaction-content" class="tab-content">
+            <div class="static-content">
+                <h2>Past User Interaction Agent Prompt</h2>
+                <div id="past-interaction-editable" class="past-interaction-text" contenteditable="true" spellcheck="false">
+                    Loading past user interaction agent prompt...
+                </div>
+            </div>
+        </div>
+
+        <div id="user-profile-content" class="tab-content">
+            <div class="static-content">
+                <h2>User Profile Agent Prompt</h2>
+                <div id="user-profile-editable" class="user-profile-text" contenteditable="true" spellcheck="false">
+                    Loading user profile agent prompt...
+                </div>
+            </div>
+        </div>
+
+        <div id="input-container">
+            <div class="attachment-button-container">
+                <label for="file-input" class="paperclip-button">
+                    <img src="paperclip.svg" alt="Attach" />
+                </label>
+                <input type="file" id="file-input" style="display: none;" multiple />
+            </div>
+            <input type="text" id="coding-task-input" class="main-input-field" placeholder="Type your message here..." />
+            <div class="send-button-container" id="send-button">
+                <div class="triangle"></div>
+            </div>
+        </div>
+        <div id="attachments-preview"></div>
+    </div>
+</head>
+
     <script>
-        // Initialize prompts from localStorage or set defaults
-        const defaultPrompts = {
-            chatAgentPrompt: "You are a helpful chat assistant...",
-            uiAgentPrompt: "You are a UI design assistant...",
-            userProfileAgentPrompt: "You are a user profiling assistant...",
-            hardConstraintsAgentPrompt: "You are a hard constraints assistant...",
-            softConstraintsAgentPrompt: "You are a soft constraints assistant..."
+        const chatBox = document.getElementById('chat-box');
+        const whiteEyeLogo = document.getElementById('white-eye-logo');
+        const codingTaskInput = document.getElementById('coding-task-input');
+        const sendButton = document.getElementById('send-button');
+        const sidebarAddPageButton = document.getElementById('add-page-sidebar-button');
+        const hamburgerMenu = document.getElementById('hamburger-menu');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarContent = document.getElementById('sidebar-content');
+        const searchTabs = document.getElementById('search-tabs');
+        const fileInput = document.getElementById('file-input');
+        const attachmentsPreview = document.getElementById('attachments-preview');
+        let selectedFiles = [];
+        let feedbackButtonShown = {};
+        let userIp = '';
+        let currentPage = 'New Page 1';
+        let pageCount = 1;
+        let syntaxHighlightTimeout;
+        let sidebarVisible = false;
+
+        let chatHistories = {
+            'New Page 1': []
         };
 
-        // Load prompts from localStorage or use defaults
-        function initializePrompts() {
-            Object.keys(defaultPrompts).forEach(promptType => {
-                const savedPrompt = localStorage.getItem(promptType);
-                document.getElementById(`${promptType}Text`).value = savedPrompt || defaultPrompts[promptType];
+        fileInput.addEventListener('change', () => {
+            const files = Array.from(fileInput.files);
+            files.forEach((file) => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('attachment-item');
+                fileItem.innerHTML = `
+                    <span>${file.name}</span>
+                    <button class="remove-attachment">x</button>
+                `;
+                fileItem.querySelector('.remove-attachment').addEventListener('click', () => {
+                    selectedFiles = selectedFiles.filter(f => f !== file);
+                    fileItem.remove();
+                });
+                attachmentsPreview.appendChild(fileItem);
+                selectedFiles.push(file);
+            });
+            fileInput.value = '';
+        });
+
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                userIp = data.ip;
+            })
+            .catch(error => {
+                console.error('Error fetching IP address:', error);
+            });
+
+        function appendMessage(sender, text, isCode = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender === 'User' ? 'user' : 'ai');
+            const selectedModel = document.getElementById('model-select').value;
+        
+            if (sender === 'AI') {
+                whiteEyeLogo.classList.remove('eye-fade');
+                if (isCode && selectedModel !== 'chat') { 
+                    const markdownHtml = marked.parse(text);
+                    messageElement.innerHTML = markdownHtml;
+                    messageElement.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                } else {
+                    messageElement.textContent = text;
+                }
+                if (!feedbackButtonShown[currentPage]) {
+                    const feedbackButton = createFeedbackButton();
+                    chatBox.appendChild(feedbackButton);
+                    feedbackButtonShown[currentPage] = true;
+                }
+            } else {
+                messageElement.textContent = text;
+            }
+            chatBox.appendChild(messageElement);
+            chatBox.appendChild(whiteEyeLogo);
+            chatBox.scrollTo({
+                top: chatBox.scrollHeight,
+                behavior: 'smooth'
             });
         }
 
-        function openTab(tabName) {
-            // Hide all tab content
-            const tabContents = document.getElementsByClassName('tab-content');
-            for (let content of tabContents) {
-                content.classList.remove('active');
+        function createFeedbackButton() {
+            const feedbackButton = document.createElement('button');
+            feedbackButton.id = 'feedback-button';
+            feedbackButton.textContent = 'Leave Feedback';
+            feedbackButton.addEventListener('click', () => {
+                window.open('feedback_survey.html', 'Litcode Feedback Survey', 'width=800,height=600');
+            });
+            return feedbackButton;
+        }
+
+        function updateBackendValues(type, content) {
+            console.log(`Updating ${type} with content:`, content);
+            console.log('Chat histories:', chatHistories);
+
+            const payload = {};
+            if (type === 'prompt') {
+                payload.premise = content;
+            } else if (type === 'synthetic') {
+                payload.data = content;
+            } else if (type === 'constraint-hard') {
+                payload.constraintHard = content;
+            } else if (type === 'constraint-soft') {
+                payload.constraintSoft = content;
+            } else if (type === 'past-interaction') {
+                payload.pastInteraction = content;
+            } else if (type === 'user-profile') {
+                payload.userProfile = content;
             }
+        
+            fetch('https://48ad-34-124-215-197.ngrok-free.app/update_vals', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Update response:', data);
+                if (data.error) {
+                    console.error('Error updating values:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating values:', error);
+            });
+        }
+
+        function setActiveTab(tab, pageName) {
+            const chatBox = document.getElementById('chat-box');
+            const inputContainer = document.getElementById('input-container');
+            const modelSelectContainer = document.getElementById('model-select-container');
+            const promptContent = document.getElementById('prompt-content');
+            const syntheticContent = document.getElementById('synthetic-content');
+            const constraintHardContent = document.getElementById('constraint-hard-content');
+            const constraintSoftContent = document.getElementById('constraint-soft-content');
+            const pastInteractionContent = document.getElementById('past-interaction-content');
+            const userProfileContent = document.getElementById('user-profile-content');
+
+            // Hide all content
+            [chatBox, inputContainer, modelSelectContainer, promptContent, syntheticContent,
+             constraintHardContent, constraintSoftContent, pastInteractionContent, userProfileContent]
+            .forEach(element => element.style.display = 'none');
+
+            // Hide all tabs except static tabs
+            document.querySelectorAll('.tab:not(.static-tab)').forEach((otherTab) => {
+                if (otherTab !== tab) {
+                    otherTab.classList.add('hidden');
+                }
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            // Show the selected tab
+            tab.classList.remove('hidden');
+            tab.classList.add('active');
+
+            // Show appropriate content based on tab
+            switch(tab.id) {
+                case 'prompt-tab':
+                    promptContent.style.display = 'block';
+                    break;
+                case 'synthetic-tab':
+                    syntheticContent.style.display = 'block';
+                    break;
+                case 'constraint-hard-tab':
+                    constraintHardContent.style.display = 'block';
+                    break;
+                case 'constraint-soft-tab':
+                    constraintSoftContent.style.display = 'block';
+                    break;
+                case 'past-interaction-tab':
+                    pastInteractionContent.style.display = 'block';
+                    break;
+                case 'user-profile-tab':
+                    userProfileContent.style.display = 'block';
+                    break;
+                default:
+                    chatBox.style.display = 'flex';
+                    inputContainer.style.display = 'flex';
+                    modelSelectContainer.style.display = 'block';
+                    currentPage = pageName;
+                    if (!chatHistories[currentPage]) {
+                        chatHistories[currentPage] = [];
+                    }
+                    loadChatHistory(currentPage);
+            }
+        }
+
+        function submitCodingTask() {
+            const codingTask = codingTaskInput.value;
+            const selectedModel = document.getElementById('model-select').value;
+            const activeTab = document.querySelector('.tab.active input.tab-title');
+            const currentTitle = activeTab.value;
             
-            // Remove active class from all buttons
-            const tabButtons = document.getElementsByClassName('tab-button');
-            for (let button of tabButtons) {
-                button.classList.remove('active');
+            if (codingTask || selectedFiles.length > 0) {
+                appendMessage('User', codingTask);
+                codingTaskInput.value = '';
+                whiteEyeLogo.classList.add('eye-fade');
+                chatHistories[currentPage].push({ sender: 'User', text: codingTask, isCode: false });
+
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'ai');
+                chatBox.appendChild(messageElement);
+                chatBox.appendChild(whiteEyeLogo);
+        
+                const messagePayload = {
+                    ip_address: userIp,
+                    message: codingTask,
+                    page: currentPage,
+                    model: selectedModel,
+                    tab_name: currentTitle,
+                    file_names: selectedFiles.map(file => file.name)
+                };
+        
+                const formData = new FormData();
+                formData.append('payload', JSON.stringify(messagePayload));
+                selectedFiles.forEach((file) => {
+                    formData.append('files[]', file);
+                });
+        
+                fetch('https://48ad-34-124-215-197.ngrok-free.app/chat', {
+                    method: 'POST',
+                    body: formData,
+                }).then(response => {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    let completeResponse = '';
+        
+                    function processText({ done, value }) {
+                        if (done) {
+                            chatHistories[currentPage].push({ 
+                                sender: 'AI', 
+                                text: completeResponse, 
+                                isCode: true 
+                            });
+                            
+                            if (selectedModel !== 'chat') {
+                                messageElement.innerHTML = marked.parse(completeResponse);
+                                messageElement.querySelectorAll('pre code').forEach((block) => {
+                                    hljs.highlightElement(block);
+                                });
+                            }
+        
+                            whiteEyeLogo.classList.remove('eye-fade');
+                            
+                            if (!feedbackButtonShown[currentPage]) {
+                                const feedbackButton = createFeedbackButton();
+                                chatBox.appendChild(feedbackButton);
+                                feedbackButtonShown[currentPage] = true;
+                            }
+                            return;
+                        }
+        
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop();
+        
+                        lines.forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.slice(5));
+                                    completeResponse += data.response;
+                                    
+                                    if (selectedModel !== 'chat') {
+                                        messageElement.textContent = completeResponse;
+                                    } else {
+                                        messageElement.textContent = completeResponse;
+                                    }
+                                } catch (e) {
+                                    console.error('Error parsing SSE data:', e);
+                                }
+                            }
+                        });
+        
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                        return reader.read().then(processText);
+                    }
+        
+                    return reader.read().then(processText);
+                }).catch(error => {
+                    console.error('Error:', error);
+                    messageElement.textContent = 'An error occurred while processing your request.';
+                    whiteEyeLogo.classList.remove('eye-fade');
+                });
+        
+                attachmentsPreview.innerHTML = '';
+                selectedFiles = [];
             }
-            
-            // Show selected tab content and activate button
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
         }
 
-        function updatePrompt(agentType) {
-            const promptText = document.getElementById(`${agentType}Text`).value;
-            localStorage.setItem(agentType, promptText);
-            alert(`${agentType} updated successfully!`);
-        }
+        function loadChatHistory(pageName) {
+            chatBox.innerHTML = '';
+            const history = chatHistories[pageName] || [];
 
-        function sendMessage() {
-            const userInput = document.getElementById('userInput');
-            const chatContainer = document.getElementById('chatContainer');
-            const message = userInput.value.trim();
+            if (history.length === 0) {
+                chatBox.appendChild(whiteEyeLogo);
+            } else {
+                history.forEach(msg => {
+                    appendMessage(msg.sender, msg.text, msg.isCode);
+                });
+                chatBox.appendChild(whiteEyeLogo);
+            }
 
-            if (message) {
-                // Add user message
-                const userMessageDiv = document.createElement('div');
-                userMessageDiv.className = 'message user-message';
-                userMessageDiv.textContent = message;
-                chatContainer.appendChild(userMessageDiv);
-
-                // Add assistant message (placeholder)
-                const assistantMessageDiv = document.createElement('div');
-                assistantMessageDiv.className = 'message assistant-message';
-                assistantMessageDiv.textContent = "This is a placeholder response. In a real implementation, this would be the AI model's response.";
-                chatContainer.appendChild(assistantMessageDiv);
-
-                // Clear input
-                userInput.value = '';
-
-                // Scroll to bottom
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+            if (feedbackButtonShown[pageName]) {
+                const feedbackButton = createFeedbackButton();
+                chatBox.appendChild(feedbackButton);
             }
         }
 
-        // Initialize the first tab as active when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelector('.tab-button').click();
-            initializePrompts();
+        // Event Listeners
+        sendButton.addEventListener('click', submitCodingTask);
+        codingTaskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitCodingTask();
+            }
         });
 
-        // Handle Enter key in textarea
-        document.getElementById('userInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+        hamburgerMenu.addEventListener('click', () => {
+            sidebarVisible = !sidebarVisible;
+            sidebar.classList.toggle('open', sidebarVisible);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (sidebarVisible && !sidebar.contains(event.target) && !hamburgerMenu.contains(event.target)) {
+                sidebar.classList.remove('open');
+                sidebarVisible = false;
             }
+        });
+
+        sidebarAddPageButton.addEventListener('click', () => {
+            pageCount++;
+            const newPageName = `New Page ${pageCount}`;
+            
+            const newTab = document.createElement('div');
+            newTab.classList.add('tab');
+            newTab.setAttribute('data-page-name', newPageName);
+            newTab.innerHTML = `<input type="text" value="${newPageName}" class="tab-title" />`;
+        
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById('tab-container').appendChild(newTab);
+            chatHistories[newPageName] = [];
+        
+            const sidebarTab = document.createElement('div');
+            sidebarTab.classList.add('sidebar-tab');
+            sidebarTab.textContent = newPageName;
+            sidebarContent.appendChild(sidebarTab);
+        
+            const tabTitleInput = newTab.querySelector('.tab-title');
+            
+            tabTitleInput.addEventListener('input', function() {
+                sidebarTab.textContent = this.value;
+            });
+            
+            sidebarTab.addEventListener('click', () => {
+                setActiveTab(newTab, newPageName);
+                sidebar.classList.remove('open');
+                sidebarVisible = false;
+            });
+        
+            setActiveTab(newTab, newPageName);
+        });
+
+        // Initialize first tab
+        const firstTab = document.getElementById('new-page-1');
+        const firstSidebarTab = document.createElement('div');
+        firstSidebarTab.classList.add('sidebar-tab');
+        firstSidebarTab.textContent = 'New Page 1';
+        firstSidebarTab.addEventListener('click', () => {
+            setActiveTab(firstTab, 'New Page 1');
+            sidebar.classList.remove('open');
+            sidebarVisible = false;
+        });
+        
+        sidebarContent.appendChild(firstSidebarTab);
+        setActiveTab(firstTab, 'New Page 1');
+
+        // Initialize tab title input handlers
+        const firstTabTitle = firstTab.querySelector('.tab-title');
+        firstTabTitle.addEventListener('input', function() {
+            firstSidebarTab.textContent = this.value;
+        });
+
+        // Initialize all editable content
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchInitialValues();
+            
+            const editableElements = [
+                'prompt-editable',
+                'synthetic-editable',
+                'constraint-hard-editable',
+                'constraint-soft-editable',
+                'past-interaction-editable',
+                'user-profile-editable'
+            ];
+
+            editableElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.addEventListener('input', (e) => {
+                        const content = e.target.innerHTML;
+                        updateBackendValues(elementId.split('-')[0], content);
+                    });
+                }
+            });
         });
     </script>
 </body>

@@ -702,7 +702,7 @@
         function fetchInitialValues() {
             console.log('Starting fetch request to /init_vals');
             
-            fetch('https://48ad-34-124-215-197.ngrok-free.app/init_vals', {
+            fetch('init_vals', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -780,7 +780,7 @@
                     break;
             }
         
-            fetch('https://48ad-34-124-215-197.ngrok-free.app/update_vals', {
+            fetch('https://1554-34-87-30-222.ngrok-free.app/update_vals', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -860,7 +860,7 @@
                 payload.userProfile = content;
             }
         
-            fetch('https://48ad-34-124-215-197.ngrok-free.app/update_vals', {
+            fetch('https://1554-34-87-30-222.ngrok-free.app/update_vals', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

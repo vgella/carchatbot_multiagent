@@ -942,109 +942,147 @@
             }
         }
 
-        function submitCodingTask() {
-            const codingTask = codingTaskInput.value;
-            const selectedModel = document.getElementById('model-select').value;
-            const activeTab = document.querySelector('.tab.active input.tab-title');
-            const currentTitle = activeTab.value;
+    function appendAgentMessage(agentName, message) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', 'ai');
+        
+        // Create agent label
+        const agentLabel = document.createElement('div');
+        agentLabel.style.fontWeight = 'bold';
+        agentLabel.style.marginBottom = '5px';
+        agentLabel.textContent = `${agentName}:`;
+        
+        // Create message content
+        const messageContent = document.createElement('div');
+        messageContent.textContent = message;
+        
+        // Combine elements
+        messageElement.appendChild(agentLabel);
+        messageElement.appendChild(messageContent);
+        
+        chatBox.appendChild(messageElement);
+        chatBox.appendChild(whiteEyeLogo);
+        
+        // Scroll to bottom
+        chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+
+    function submitCodingTask() {
+        const codingTask = codingTaskInput.value;
+        const selectedModel = document.getElementById('model-select').value;
+        const activeTab = document.querySelector('.tab.active input.tab-title');
+        const currentTitle = activeTab.value;
+        
+        if (codingTask || selectedFiles.length > 0) {
+            appendMessage('User', codingTask);
+            codingTaskInput.value = '';
+            whiteEyeLogo.classList.add('eye-fade');
             
-            if (codingTask || selectedFiles.length > 0) {
-                appendMessage('User', codingTask);
-                codingTaskInput.value = '';
-                whiteEyeLogo.classList.add('eye-fade');
-                chatHistories[currentPage].push({ sender: 'User', text: codingTask, isCode: false });
-
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('message', 'ai');
-                chatBox.appendChild(messageElement);
-                chatBox.appendChild(whiteEyeLogo);
-        
-                const messagePayload = {
-                    ip_address: userIp,
-                    message: codingTask,
-                    page: currentPage,
-                    model: selectedModel,
-                    tab_name: currentTitle,
-                    file_names: selectedFiles.map(file => file.name)
-                };
-        
-                const formData = new FormData();
-                formData.append('payload', JSON.stringify(messagePayload));
-                selectedFiles.forEach((file) => {
-                    formData.append('files[]', file);
-                });
-        
-                fetch('https://48ad-34-124-215-197.ngrok-free.app/chat', {
+            // Step 1: UI Agent
+            appendAgentMessage('System', 'Processing... (Retrieving UI interactions)');
+            fetch('https://bb48-34-87-30-222.ngrok-free.app/ui_agent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: codingTask })
+            })
+            .then(response => response.json())
+            .then(uiData => {
+                appendAgentMessage('UI Agent', uiData.ui_summary);
+                
+                // Step 2: User Profile Agent
+                appendAgentMessage('System', 'Processing... (Updating User Profile)');
+                return fetch('https://bb48-34-87-30-222.ngrok-free.app/user_profile_agent', {
                     method: 'POST',
-                    body: formData,
-                }).then(response => {
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = '';
-                    let completeResponse = '';
-        
-                    function processText({ done, value }) {
-                        if (done) {
-                            chatHistories[currentPage].push({ 
-                                sender: 'AI', 
-                                text: completeResponse, 
-                                isCode: true 
-                            });
-                            
-                            if (selectedModel !== 'chat') {
-                                messageElement.innerHTML = marked.parse(completeResponse);
-                                messageElement.querySelectorAll('pre code').forEach((block) => {
-                                    hljs.highlightElement(block);
-                                });
-                            }
-        
-                            whiteEyeLogo.classList.remove('eye-fade');
-                            
-                            if (!feedbackButtonShown[currentPage]) {
-                                const feedbackButton = createFeedbackButton();
-                                chatBox.appendChild(feedbackButton);
-                                feedbackButtonShown[currentPage] = true;
-                            }
-                            return;
-                        }
-        
-                        buffer += decoder.decode(value, { stream: true });
-                        const lines = buffer.split('\n');
-                        buffer = lines.pop();
-        
-                        lines.forEach(line => {
-                            if (line.startsWith('data: ')) {
-                                try {
-                                    const data = JSON.parse(line.slice(5));
-                                    completeResponse += data.response;
-                                    
-                                    if (selectedModel !== 'chat') {
-                                        messageElement.textContent = completeResponse;
-                                    } else {
-                                        messageElement.textContent = completeResponse;
-                                    }
-                                } catch (e) {
-                                    console.error('Error parsing SSE data:', e);
-                                }
-                            }
-                        });
-        
-                        chatBox.scrollTop = chatBox.scrollHeight;
-                        return reader.read().then(processText);
-                    }
-        
-                    return reader.read().then(processText);
-                }).catch(error => {
-                    console.error('Error:', error);
-                    messageElement.textContent = 'An error occurred while processing your request.';
-                    whiteEyeLogo.classList.remove('eye-fade');
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ui_summary: uiData.ui_summary,
+                    })
+                }).then(r => ({ profileResponse: r.json(), uiSummary: uiData.ui_summary }));
+            })
+            .then(({ profileResponse, uiSummary }) => {
+                return profileResponse.then(profileData => {
+                    appendAgentMessage('Profile Agent', profileData.user_profile);
+                    return { profileData, uiSummary };
                 });
-        
-                attachmentsPreview.innerHTML = '';
-                selectedFiles = [];
-            }
+            })
+            .then(({ profileData, uiSummary }) => {
+                // Step 3: Hard Constraints Agent
+                appendAgentMessage('System', 'Processing... (Extracting Hard Constraints)');
+                return fetch('https://bb48-34-87-30-222.ngrok-free.app/hard_constraints', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_profile: profileData.user_profile
+                    })
+                }).then(r => ({ constraintsResponse: r.json(), profileData, uiSummary }));
+            })
+            .then(({ constraintsResponse, profileData, uiSummary }) => {
+                return constraintsResponse.then(hardConstraintsData => {
+                    appendAgentMessage('Hard Constraints Agent', hardConstraintsData.hard_constraints);
+                    return { hardConstraintsData, profileData, uiSummary };
+                });
+            })
+            .then(({ hardConstraintsData, profileData, uiSummary }) => {
+                // Step 4: Soft Constraints Agent
+                appendAgentMessage('System', 'Processing... (Extracting Soft Constraints)');
+                return fetch('https://bb48-34-87-30-222.ngrok-free.app/soft_constraints', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_profile: profileData.user_profile,
+                        hard_constraints: hardConstraintsData,
+                    })
+                }).then(r => ({ softResponse: r.json(), hardConstraintsData, profileData, uiSummary }));
+            })
+            .then(({ softResponse, hardConstraintsData, profileData, uiSummary }) => {
+                return softResponse.then(softConstraintsData => {
+                    appendAgentMessage('Soft Constraints Agent', softConstraintsData.soft_constraints);
+                    return { softConstraintsData, hardConstraintsData, profileData, uiSummary };
+                });
+            })
+            .then(({ softConstraintsData, hardConstraintsData, profileData, uiSummary }) => {
+                // Step 5: Final Chat Response
+                appendAgentMessage('System', 'Processing... (Generating Final Response)');
+                return fetch('https://bb48-34-87-30-222.ngrok-free.app/chat_response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: codingTask,
+                        user_profile: profileData.user_profile,
+                        car_recommendations: "Generated recommendations here",
+                        ui_summary: uiSummary
+                    })
+                });
+            })
+            .then(response => response.json())
+            .then(chatData => {
+                appendAgentMessage('Chat Agent', chatData.response);
+                whiteEyeLogo.classList.remove('eye-fade');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                appendAgentMessage('System', 'An error occurred while processing your request.');
+                whiteEyeLogo.classList.remove('eye-fade');
+            });
+    
+            // Clear attachments
+            attachmentsPreview.innerHTML = '';
+            selectedFiles = [];
         }
-
+    }
         function loadChatHistory(pageName) {
             chatBox.innerHTML = '';
             const history = chatHistories[pageName] || [];

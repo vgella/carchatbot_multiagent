@@ -1015,7 +1015,7 @@
             .then(({ profileData, uiSummary }) => {
                 // Step 3: Hard Constraints Agent
                 appendAgentMessage('System', 'Processing... (Extracting Hard Constraints)');
-                return fetch('https://bb48-34-87-30-222.ngrok-free.app/hard_constraints', {
+                return fetch('https://bb48-34-87-30-222.ngrok-free.app/process_hard_constraints', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1034,7 +1034,7 @@
             .then(({ hardConstraintsData, profileData, uiSummary }) => {
                 // Step 4: Soft Constraints Agent
                 appendAgentMessage('System', 'Processing... (Extracting Soft Constraints)');
-                return fetch('https://bb48-34-87-30-222.ngrok-free.app/soft_constraints', {
+                return fetch('https://bb48-34-87-30-222.ngrok-free.app/process_soft_constraints', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

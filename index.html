@@ -1061,6 +1061,13 @@
                     });
                 }
             });
+            // Add tab clicking functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+            const pageName = tab.getAttribute('data-page-name') || tab.id;
+            setActiveTab(tab, pageName);
+        });
+    });
         });
     </script>
 </body>

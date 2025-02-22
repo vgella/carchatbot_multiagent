@@ -809,44 +809,6 @@
             return feedbackButton;
         }
 
-        function updateBackendValues(type, content) {
-            console.log(`Updating ${type} with content:`, content);
-            console.log('Chat histories:', chatHistories);
-
-            const payload = {};
-            if (type === 'prompt') {
-                payload.premise = content;
-            } else if (type === 'synthetic') {
-                payload.premise = content;
-            } else if (type === 'constraint-hard') {
-                payload.premise = content;
-            } else if (type === 'constraint-soft') {
-                payload.premise = content;
-            } else if (type === 'past-interaction') {
-                payload.premise = content;
-            } else if (type === 'user-profile') {
-                payload.premise = content;
-            }
-        
-            fetch('update_vals', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Update response:', data);
-                if (data.error) {
-                    console.error('Error updating values:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error updating values:', error);
-            });
-        }
 
         function setActiveTab(tab, pageName) {
             const chatBox = document.getElementById('chat-box');

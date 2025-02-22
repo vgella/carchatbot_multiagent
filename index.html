@@ -860,7 +860,7 @@
                 payload.userProfile = content;
             }
         
-            fetch('https://e163-34-87-30-222.ngrok-free.app/update_vals', {
+            fetch('https://3887-34-87-30-222.ngrok-free.app/update_vals', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -983,7 +983,7 @@
             
             // Step 1: UI Agent
             appendAgentMessage('System', 'Processing... (Retrieving UI interactions)');
-            fetch('https://e163-34-87-30-222.ngrok-free.app/ui_agent', {
+            fetch('https://3887-34-87-30-222.ngrok-free.app/ui_agent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -996,7 +996,7 @@
                 
                 // Step 2: User Profile Agent
                 appendAgentMessage('System', 'Processing... (Updating User Profile)');
-                return fetch('https://e163-34-87-30-222.ngrok-free.app/user_profile_agent', {
+                return fetch('https://3887-34-87-30-222.ngrok-free.app/user_profile_agent', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1015,7 +1015,7 @@
             .then(({ profileData, uiSummary }) => {
                 // Step 3: Hard Constraints Agent
                 appendAgentMessage('System', 'Processing... (Extracting Hard Constraints)');
-                return fetch('https://e163-34-87-30-222.ngrok-free.app/process_hard_constraints', {
+                return fetch('https://3887-34-87-30-222.ngrok-free.app/process_hard_constraints', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1034,7 +1034,7 @@
             .then(({ hardConstraintsData, profileData, uiSummary }) => {
                 // Step 4: Soft Constraints Agent
                 appendAgentMessage('System', 'Processing... (Extracting Soft Constraints)');
-                return fetch('https://e163-34-87-30-222.ngrok-free.app/process_soft_constraints', {
+                return fetch('https://3887-34-87-30-222.ngrok-free.app/process_soft_constraints', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1054,7 +1054,7 @@
             .then(({ softConstraintsData, hardConstraintsData, profileData, uiSummary }) => {
                 // Step 5: Final Chat Response
                 appendAgentMessage('System', 'Processing... (Generating Final Response)');
-                return fetch('https://e163-34-87-30-222.ngrok-free.app/chat_response', {
+                return fetch('https://3887-34-87-30-222.ngrok-free.app/chat_response', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

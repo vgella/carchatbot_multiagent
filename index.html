@@ -1283,6 +1283,7 @@
         
         // Then call it in the DOMContentLoaded event listener
         document.addEventListener('DOMContentLoaded', () => {
+            // Handle editable elements
             const editableElements = {
                 'constraint-hard-editable': 'constraint-hard',
                 'constraint-soft-editable': 'constraint-soft',
@@ -1307,6 +1308,78 @@
                     });
                 }
             });
+        
+            // Handle static tabs
+            const staticTabs = document.querySelectorAll('.static-tab');
+            staticTabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+        
+                    // Hide all content
+                    document.getElementById('chat-box').style.display = 'none';
+                    document.getElementById('input-container').style.display = 'none';
+                    document.getElementById('model-select-container').style.display = 'none';
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.style.display = 'none';
+                    });
+        
+                    // Show the corresponding content
+                    switch(tab.id) {
+                        case 'prompt-tab':
+                            document.getElementById('prompt-content').style.display = 'block';
+                            break;
+                        case 'synthetic-tab':
+                            document.getElementById('synthetic-content').style.display = 'block';
+                            break;
+                        case 'constraint-hard-tab':
+                            document.getElementById('constraint-hard-content').style.display = 'block';
+                            break;
+                        case 'constraint-soft-tab':
+                            document.getElementById('constraint-soft-content').style.display = 'block';
+                            break;
+                        case 'past-interaction-tab':
+                            document.getElementById('past-interaction-content').style.display = 'block';
+                            break;
+                        case 'user-profile-tab':
+                            document.getElementById('user-profile-content').style.display = 'block';
+                            break;
+                    }
+                });
+            });
+        
+            // Handle chat tab
+            const chatTab = document.getElementById('new-page-1');
+            if (chatTab) {
+                chatTab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to chat tab
+                    chatTab.classList.add('active');
+        
+                    // Hide all prompt content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.style.display = 'none';
+                    });
+        
+                    // Show chat interface
+                    document.getElementById('chat-box').style.display = 'flex';
+                    document.getElementById('input-container').style.display = 'flex';
+                    document.getElementById('model-select-container').style.display = 'block';
+                    
+                    // Load chat history
+                    currentPage = chatTab.getAttribute('data-page-name') || 'New Page 1';
+                    loadChatHistory(currentPage);
+                });
+            }
         
             // Initialize prompts
             fetchInitialValues();

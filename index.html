@@ -736,6 +736,11 @@
         
         // Function to update backend when prompts are edited
         function updateBackendValues(type, content) {
+            console.log(`Updating ${type} with content:`);
+            console.log('--------------------');
+            console.log(content);  // This will show the entire prompt
+            console.log('--------------------');
+            
             const agentEndpoints = {
                 'constraint-hard': '/update_val_constraint_agent_1',
                 'constraint-soft': '/update_val_constraint_agent_2',

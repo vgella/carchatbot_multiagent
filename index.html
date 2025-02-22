@@ -952,9 +952,14 @@
         agentLabel.style.marginBottom = '5px';
         agentLabel.textContent = `${agentName}:`;
         
-        // Create message content
+        // Create message content and parse markdown
         const messageContent = document.createElement('div');
-        messageContent.textContent = message;
+        messageContent.innerHTML = marked.parse(message);
+        
+        // Apply syntax highlighting to any code blocks
+        messageContent.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
         
         // Combine elements
         messageElement.appendChild(agentLabel);

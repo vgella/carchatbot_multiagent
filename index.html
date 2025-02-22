@@ -799,6 +799,73 @@
                 console.error('Error updating values:', error);
             });
         }
+        function fetchInitialValues() {
+            const agentEndpoints = {
+                'constraint-hard-editable': '/init_vals_constraint_agent_1',
+                'constraint-soft-editable': '/init_vals_constraint_agent_2',
+                'past-interaction-editable': '/init_vals_ui_agent',
+                'user-profile-editable': '/init_vals_profile_agent',
+                'prompt-editable': '/init_vals_chat_agent'
+            };
+        
+            Object.entries(agentEndpoints).forEach(([elementId, endpoint]) => {
+                fetch(`https://e0e7-34-87-30-222.ngrok-free.app${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.innerHTML = data.premise || 'No prompt data received';
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching values for ${elementId}:`, error);
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.innerHTML = 'Failed to load prompt. Please try again later.';
+                    }
+                });
+            });
+        }
+        
+        // Function to update backend when prompts are edited
+        function updateBackendValues(type, content) {
+            const agentEndpoints = {
+                'constraint-hard': '/update_val_constraint_agent_1',
+                'constraint-soft': '/update_val_constraint_agent_2',
+                'past-interaction': '/update_val_ui_agent',
+                'user-profile': '/update_val_profile_agent',
+                'prompt': '/update_val_chat_agent'
+            };
+        
+            const endpoint = agentEndpoints[type];
+            if (!endpoint) return;
+        
+            fetch(`https://e0e7-34-87-30-222.ngrok-free.app${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    premise: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error updating values:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating values:', error);
+            });
+        }
         function appendMessage(sender, text, isCode = false) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message', sender === 'User' ? 'user' : 'ai');
@@ -1216,10 +1283,33 @@
         
         // Then call it in the DOMContentLoaded event listener
         document.addEventListener('DOMContentLoaded', () => {
+            const editableElements = {
+                'constraint-hard-editable': 'constraint-hard',
+                'constraint-soft-editable': 'constraint-soft',
+                'past-interaction-editable': 'past-interaction',
+                'user-profile-editable': 'user-profile',
+                'prompt-editable': 'prompt'
+            };
+        
+            Object.entries(editableElements).forEach(([elementId, type]) => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    // Add input handler
+                    element.addEventListener('input', (e) => {
+                        const content = e.target.innerHTML;
+                        updateBackendValues(type, content);
+                    });
+        
+                    // Add blur handler
+                    element.addEventListener('blur', (e) => {
+                        const content = e.target.innerHTML;
+                        updateBackendValues(type, content);
+                    });
+                }
+            });
+        
+            // Initialize prompts
             fetchInitialValues();
-            initializeTabHandlers();
-            // ... rest of your DOMContentLoaded code
-        });
         });
     </script>
 </body>

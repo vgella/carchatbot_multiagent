@@ -699,106 +699,7 @@
             .catch(error => {
                 console.error('Error fetching IP address:', error);
             });
-        function fetchInitialValues() {
-            console.log('Starting fetch request to /init_vals');
-            
-            fetch('init_vals', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Parsed data:', data);
-                
-                const elements = {
-                    'prompt-editable': data.premise,
-                    'synthetic-editable': data.data,
-                    'constraint-hard-editable': data.constraintHard,
-                    'constraint-soft-editable': data.constraintSoft,
-                    'past-interaction-editable': data.pastInteraction,
-                    'user-profile-editable': data.userProfile
-                };
-        
-                Object.entries(elements).forEach(([elementId, content]) => {
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        element.innerHTML = content || `No ${elementId.split('-')[0]} data received`;
-                    }
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching initial values:', error);
-                
-                const elements = [
-                    'prompt-editable',
-                    'synthetic-editable',
-                    'constraint-hard-editable',
-                    'constraint-soft-editable',
-                    'past-interaction-editable',
-                    'user-profile-editable'
-                ];
-        
-                elements.forEach(elementId => {
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        element.innerHTML = 'Failed to load data. Please try again later.';
-                    }
-                });
-            });
-        }
-        
-        function updateBackendValues(type, content) {
-            console.log(`Updating ${type} with content:`, content);
-        
-            const payload = {};
-            switch(type) {
-                case 'prompt':
-                    payload.premise = content;
-                    break;
-                case 'synthetic':
-                    payload.data = content;
-                    break;
-                case 'constraint-hard':
-                    payload.constraintHard = content;
-                    break;
-                case 'constraint-soft':
-                    payload.constraintSoft = content;
-                    break;
-                case 'past-interaction':
-                    payload.pastInteraction = content;
-                    break;
-                case 'user-profile':
-                    payload.userProfile = content;
-                    break;
-            }
-        
-            fetch('update_vals', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Update response:', data);
-                if (data.error) {
-                    console.error('Error updating values:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error updating values:', error);
-            });
-        }
+
         function fetchInitialValues() {
             const agentEndpoints = {
                 'constraint-hard-editable': '/init_vals_constraint_agent_1',
@@ -1248,29 +1149,7 @@
             firstSidebarTab.textContent = this.value;
         });
 
-        // Initialize all editable content
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchInitialValues();
-            
-            const editableElements = [
-                'prompt-editable',
-                'synthetic-editable',
-                'constraint-hard-editable',
-                'constraint-soft-editable',
-                'past-interaction-editable',
-                'user-profile-editable'
-            ];
 
-            editableElements.forEach(elementId => {
-                const element = document.getElementById(elementId);
-                if (element) {
-                    element.addEventListener('input', (e) => {
-                        const content = e.target.innerHTML;
-                        updateBackendValues(elementId.split('-')[0], content);
-                    });
-                }
-            });
-            // Add tab clicking functionality
 // Add this outside the DOMContentLoaded event listener
         function initializeTabHandlers() {
             document.querySelectorAll('.tab').forEach(tab => {

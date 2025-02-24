@@ -710,7 +710,7 @@
             };
         
             Object.entries(agentEndpoints).forEach(([elementId, endpoint]) => {
-                fetch(`${endpoint}`, {
+                fetch(`https://de1c-34-126-64-36.ngrok-free.app${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

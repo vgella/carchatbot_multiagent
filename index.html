@@ -702,20 +702,39 @@
 
         function fetchInitialValues() {
             const agentEndpoints = {
-                'constraint-hard-editable': '/init_vals_constraint_agent_1',
-                'constraint-soft-editable': '/init_vals_constraint_agent_2',
-                'past-interaction-editable': '/init_vals_ui_agent',
-                'user-profile-editable': '/init_vals_profile_agent',
-                'prompt-editable': '/init_vals_chat_agent'
+                'constraint-hard-editable': {
+                    endpoint: '/init_vals_constraint_agent_1',
+                    page: 'Constraint Generator Prompt Hard'
+                },
+                'constraint-soft-editable': {
+                    endpoint: '/init_vals_constraint_agent_2',
+                    page: 'Constraint Generator Prompt Soft'
+                },
+                'past-interaction-editable': {
+                    endpoint: '/init_vals_ui_agent',
+                    page: 'Past User Interaction Agent Prompt'
+                },
+                'user-profile-editable': {
+                    endpoint: '/init_vals_profile_agent',
+                    page: 'User Profile Agent Prompt'
+                },
+                'prompt-editable': {
+                    endpoint: '/init_vals_chat_agent',
+                    page: 'Prompt'
+                }
             };
         
-            Object.entries(agentEndpoints).forEach(([elementId, endpoint]) => {
+            Object.entries(agentEndpoints).forEach(([elementId, { endpoint, page }]) => {
                 fetch(`https://905d-35-237-58-47.ngrok-free.app${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({
+                        ip_address: userIp,
+                        page: page
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -928,7 +947,11 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: codingTask })
+                body: JSON.stringify({ 
+                    message: codingTask,
+                    ip_address: userIp,
+                    page: currentPage
+                })
             })
             .then(response => response.json())
             .then(uiData => {
@@ -943,6 +966,8 @@
                     },
                     body: JSON.stringify({
                         ui_summary: uiData.ui_summary,
+                        ip_address: userIp,
+                        page: currentPage
                     })
                 }).then(r => ({ profileResponse: r.json(), uiSummary: uiData.ui_summary }));
             })
@@ -961,7 +986,9 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        user_profile: profileData.user_profile
+                        user_profile: profileData.user_profile,
+                        ip_address: userIp,
+                        page: currentPage
                     })
                 }).then(r => ({ constraintsResponse: r.json(), profileData, uiSummary }));
             })
@@ -982,6 +1009,8 @@
                     body: JSON.stringify({
                         user_profile: profileData.user_profile,
                         hard_constraints: hardConstraintsData.hard_constraints,
+                        ip_address: userIp,
+                        page: currentPage
                     })
                 }).then(r => ({ softResponse: r.json(), hardConstraintsData, profileData, uiSummary }));
             })
@@ -1003,7 +1032,9 @@
                         message: codingTask,
                         user_profile: profileData.user_profile,
                         car_recommendations: softConstraintsData.car_recommendations,
-                        ui_summary: uiSummary
+                        ui_summary: uiSummary,
+                        ip_address: userIp,
+                        page: currentPage
                     })
                 });
             })

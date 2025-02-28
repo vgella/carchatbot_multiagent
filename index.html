@@ -1160,14 +1160,7 @@
         // Then call it in the DOMContentLoaded event listener
         document.addEventListener('DOMContentLoaded', () => {
             // Handle editable elements
-            fetch('https://api.ipify.org?format=json')
-            .then(response => response.json())
-            .then(data => {
-                userIp = data.ip;
-            })
-            .catch(error => {
-                console.error('Error fetching IP address:', error);
-            });
+
             const editableElements = {
                 'constraint-hard-editable': 'constraint-hard',
                 'constraint-soft-editable': 'constraint-soft',
@@ -1268,7 +1261,16 @@
             }
         
             // Initialize prompts
-            fetchInitialValues();
+            fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                userIp = data.ip;
+                fetchInitialValues();
+
+            })
+            .catch(error => {
+                console.error('Error fetching IP address:', error);
+            });
         });
     </script>
 </body>

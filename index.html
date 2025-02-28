@@ -691,15 +691,6 @@
             fileInput.value = '';
         });
 
-        fetch('https://api.ipify.org?format=json')
-            .then(response => response.json())
-            .then(data => {
-                userIp = data.ip;
-            })
-            .catch(error => {
-                console.error('Error fetching IP address:', error);
-            });
-
         function fetchInitialValues() {
             const agentEndpoints = {
                 'constraint-hard-editable': {
@@ -726,7 +717,7 @@
             const pageValue = currentPage || 'New Page 1';
 
             Object.entries(agentEndpoints).forEach(([elementId, { endpoint, page }]) => {
-                fetch(`https://ac2d-34-142-196-247.ngrok-free.app${endpoint}`, {
+                fetch(`https://3034-34-142-196-247.ngrok-free.app${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -772,7 +763,7 @@
             const endpoint = agentEndpoints[type];
             if (!endpoint) return;
         
-            fetch(`https://ac2d-34-142-196-247.ngrok-free.app${endpoint}`, {
+            fetch(`https://3034-34-142-196-247.ngrok-free.app${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -950,7 +941,7 @@
             
             // Step 1: UI Agent
             appendAgentMessage('System', 'Processing... (Retrieving UI interactions)');
-            fetch('https://ac2d-34-142-196-247.ngrok-free.app/ui_agent', {
+            fetch('https://3034-34-142-196-247.ngrok-free.app/ui_agent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -967,7 +958,7 @@
                 
                 // Step 2: User Profile Agent
                 appendAgentMessage('System', 'Processing... (Updating User Profile)');
-                return fetch('https://ac2d-34-142-196-247.ngrok-free.app/user_profile_agent', {
+                return fetch('https://3034-34-142-196-247.ngrok-free.app/user_profile_agent', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -988,7 +979,7 @@
             .then(({ profileData, uiSummary }) => {
                 // Step 3: Hard Constraints Agent
                 appendAgentMessage('System', 'Processing... (Extracting Hard Constraints)');
-                return fetch('https://ac2d-34-142-196-247.ngrok-free.app/process_hard_constraints', {
+                return fetch('https://3034-34-142-196-247.ngrok-free.app/process_hard_constraints', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1009,7 +1000,7 @@
             .then(({ hardConstraintsData, profileData, uiSummary }) => {
                 // Step 4: Soft Constraints Agent
                 appendAgentMessage('System', 'Processing... (Extracting Soft Constraints)');
-                return fetch('https://ac2d-34-142-196-247.ngrok-free.app/process_soft_constraints', {
+                return fetch('https://3034-34-142-196-247.ngrok-free.app/process_soft_constraints', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1031,7 +1022,7 @@
             .then(({ softConstraintsData, hardConstraintsData, profileData, uiSummary }) => {
                 // Step 5: Final Chat Response
                 appendAgentMessage('System', 'Processing... (Generating Final Response)');
-                return fetch('https://ac2d-34-142-196-247.ngrok-free.app/chat_response', {
+                return fetch('https://3034-34-142-196-247.ngrok-free.app/chat_response', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1169,6 +1160,14 @@
         // Then call it in the DOMContentLoaded event listener
         document.addEventListener('DOMContentLoaded', () => {
             // Handle editable elements
+            fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                userIp = data.ip;
+            })
+            .catch(error => {
+                console.error('Error fetching IP address:', error);
+            });
             const editableElements = {
                 'constraint-hard-editable': 'constraint-hard',
                 'constraint-soft-editable': 'constraint-soft',

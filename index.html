@@ -770,7 +770,9 @@
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    premise: content
+                    premise: content,
+                    ip_address: userIp, 
+                    page: currentPage
                 })
             })
             .then(response => response.json())

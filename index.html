@@ -956,7 +956,7 @@
             })
             .then(response => response.json())
             .then(uiData => {
-                appendAgentMessage('UI Agent', uiData.ui_summary);
+                appendAgentMessage('Past UI Comparison and Summary Agent', uiData.ui_summary);
                 
                 // Step 2: User Profile Agent
                 appendAgentMessage('System', 'Processing... (Updating User Profile)');

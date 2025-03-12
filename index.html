@@ -956,8 +956,10 @@
             })
             .then(response => response.json())
             .then(uiData => {
-                appendAgentMessage('Past UI Comparison and Summary Agent', uiData.ui_summary);
-                
+                    const uiSummary = uiData.ui_summary ?? ""; // Default to empty string if ui_summary is missing
+
+                  if (uiData.ui_summary) {
+                    appendAgentMessage('Past UI Comparison and Summary Agent', uiData.ui_summary);                }              
                 // Step 2: User Profile Agent
                 appendAgentMessage('System', 'Processing... (Updating User Profile)');
                 return fetch('https://0365-34-82-169-215.ngrok-free.app/user_profile_agent', {
@@ -966,7 +968,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        ui_summary: uiData.ui_summary,
+                        ui_summary: uiSummary,
                         ip_address: userIp,
                         page: currentPage
                     })

@@ -972,7 +972,7 @@
                         ip_address: userIp,
                         page: currentPage
                     })
-                }).then(r => ({ profileResponse: r.json(), uiSummary: uiData.ui_summary }));
+                }).then(r => ({ profileResponse: r.json(), uiSummary: uiSummary }));
             })
             .then(({ profileResponse, uiSummary }) => {
                 return profileResponse.then(profileData => {

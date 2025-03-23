@@ -932,118 +932,24 @@
 
     function submitCodingTask() {
         const codingTask = codingTaskInput.value;
-        const selectedModel = document.getElementById('model-select').value;
-        const activeTab = document.querySelector('.tab.active input.tab-title');
-        const currentTitle = activeTab.value;
-        
-        if (codingTask || selectedFiles.length > 0) {
+        const userId = "4e56e7d6-716e-416d-bf76-06a972a1e862";
+    
+        if (codingTask) {
             appendMessage('User', codingTask);
             codingTaskInput.value = '';
             whiteEyeLogo.classList.add('eye-fade');
-            
-            // Step 1: UI Agent
-            appendAgentMessage('System', 'Processing... (Retrieving UI interactions)');
-            fetch('https://9b75-35-229-202-44.ngrok-free.app/ui_agent', {
+    
+            fetch('https://4d2b-34-124-217-179.ngrok-free.app/chat_response', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     message: codingTask,
                     ip_address: userIp,
+                    user_id: userId,
                     page: currentPage
                 })
-            })
-            .then(response => response.json())
-            .then(uiData => {
-                    const uiSummary = uiData.ui_summary ?? ""; // Default to empty string if ui_summary is missing
-
-                  if (uiData.ui_summary) {
-                    appendAgentMessage('Past UI Comparison and Summary Agent', uiData.ui_summary);                }              
-                // Step 2: User Profile Agent
-                appendAgentMessage('System', 'Processing... (Updating User Profile)');
-                return fetch('https://9b75-35-229-202-44.ngrok-free.app/user_profile_agent', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ui_summary: uiSummary,
-                        ip_address: userIp,
-                        page: currentPage
-                    })
-                }).then(r => ({ profileResponse: r.json(), uiSummary: uiSummary }));
-            })
-            .then(({ profileResponse, uiSummary }) => {
-                return profileResponse.then(profileData => {
-                    appendAgentMessage('Profile Agent', profileData.user_profile);
-                    return { profileData, uiSummary };
-                });
-            })
-            .then(({ profileData, uiSummary }) => {
-                // Step 3: Hard Constraints Agent
-                appendAgentMessage('System', 'Processing... (Extracting Hard Constraints)');
-                return fetch('https://9b75-35-229-202-44.ngrok-free.app/process_hard_constraints', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_profile: profileData.user_profile,
-                        ip_address: userIp,
-                        page: currentPage
-                    })
-                }).then(r => ({ constraintsResponse: r.json(), profileData, uiSummary }));
-            })
-            .then(({ constraintsResponse, profileData, uiSummary }) => {
-                return constraintsResponse.then(hardConstraintsData => {
-                    appendAgentMessage('Hard Constraints Agent', hardConstraintsData.hard_constraints);
-                    return { hardConstraintsData, profileData, uiSummary };
-                });
-            })
-            .then(({ hardConstraintsData, profileData, uiSummary }) => {
-                // Step 4: Soft Constraints Agent
-                appendAgentMessage('System', 'Processing... (Extracting Soft Constraints)');
-                return fetch('https://9b75-35-229-202-44.ngrok-free.app/process_soft_constraints', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_profile: profileData.user_profile,
-                        hard_constraints: hardConstraintsData.hard_constraints,
-                        ip_address: userIp,
-                        page: currentPage
-                    })
-                }).then(r => ({ softResponse: r.json(), hardConstraintsData, profileData, uiSummary }));
-            })
-            .then(({ softResponse, hardConstraintsData, profileData, uiSummary }) => {
-                return softResponse.then(softConstraintsData => {
-                    appendAgentMessage('Soft Constraints Agent', softConstraintsData.soft_constraints);
-                    
-                    if (softConstraintsData.dealership_info) {
-                        appendAgentMessage('Dealership Info Agent', softConstraintsData.dealership_info);
-                    }
-                    return { softConstraintsData, hardConstraintsData, profileData, uiSummary };
-                });
-            })
-            .then(({ softConstraintsData, hardConstraintsData, profileData, uiSummary }) => {
-                // Step 5: Final Chat Response
-                appendAgentMessage('System', 'Processing... (Generating Final Response)');
-                return fetch('https://9b75-35-229-202-44.ngrok-free.app/chat_response', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: codingTask,
-                        user_profile: profileData.user_profile,
-                        car_recommendations: softConstraintsData.car_recommendations,
-                        ui_summary: uiSummary,
-                        ip_address: userIp,
-                        page: currentPage
-                    })
-                });
             })
             .then(response => response.json())
             .then(chatData => {
@@ -1056,7 +962,6 @@
                 whiteEyeLogo.classList.remove('eye-fade');
             });
     
-            // Clear attachments
             attachmentsPreview.innerHTML = '';
             selectedFiles = [];
         }

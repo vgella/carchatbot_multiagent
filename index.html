@@ -717,7 +717,7 @@
             const pageValue = currentPage || 'New Page 1';
 
             Object.entries(agentEndpoints).forEach(([elementId, { endpoint, page }]) => {
-                fetch(`https://73cf-73-97-179-17.ngrok-free.app${endpoint}`, {
+                fetch(`https://221c-73-97-179-17.ngrok-free.app${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -763,7 +763,7 @@
             const endpoint = agentEndpoints[type];
             if (!endpoint) return;
         
-            fetch(`https://73cf-73-97-179-17.ngrok-free.app${endpoint}`, {
+            fetch(`https://221c-73-97-179-17.ngrok-free.app${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -939,7 +939,7 @@
             codingTaskInput.value = '';
             whiteEyeLogo.classList.add('eye-fade');
     
-            fetch('https://73cf-73-97-179-17.ngrok-free.app/chat_response', {
+            fetch('https://221c-73-97-179-17.ngrok-free.app/chat_response', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
